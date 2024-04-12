@@ -1,0 +1,3 @@
+cryptography==3.4.7  # For secure encryption/decryption of API keys
+speedtest-cli==2.1.3  # For testing internet speed
+colorama==0.4.4  # For terminal color support

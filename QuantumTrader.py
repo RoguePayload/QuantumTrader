@@ -1,94 +1,86 @@
-import os
+import sys
 import time
-import requests
-import hashlib
-import hmac
-import base64
-from urllib.parse import urlencode
-from time import time
-from colorama import Fore, Style, init
-from QuantumTraderConfig import API_KEYS
-from cryptography.fernet import Fernet
-from colorama import Fore, init
+from QuantumTraderConfig import load_config
+from QuantumTraderAPI import check_api_keys, save_api_key
+from QuantumTraderAI import start_trading_bot, start_mining_bot
+from QuantumTraderUtils import initialize_logging
+from QuantumTraderUI import display_main_menu, display_loading_screen
 
-# Initialize Colorama
-init(autoreset=True)
-
-# Simulated part of QuantumTraderConfig.py for storing encrypted keys
-ENCRYPTED_KEYS = {
-    'kraken': {
-        'api_key': '',
-        'api_secret': ''
-    }
-}
-
-# Function to clear the screen
 def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-# Function to encrypt API keys
-def encrypt_api_keys(key, api_key, api_secret):
-    cipher_suite = Fernet(key)
-    encrypted_api_key = cipher_suite.encrypt(api_key.encode())
-    encrypted_api_secret = cipher_suite.encrypt(api_secret.encode())
-    return encrypted_api_key, encrypted_api_secret
-
-# Function to decrypt API keys
-def decrypt_api_keys(key, encrypted_api_key, encrypted_api_secret):
-    cipher_suite = Fernet(key)
-    decrypted_api_key = cipher_suite.decrypt(encrypted_api_key).decode()
-    decrypted_api_secret = cipher_suite.decrypt(encrypted_api_secret).decode()
-    return decrypted_api_key, decrypted_api_secret
-
-# Function to get the Kraken account balance
-def get_kraken_account_balance(api_key, api_secret):
-    api_url = "https://api.kraken.com"
-    api_method = "/0/private/Balance"
-    nonce = str(int(time.time() * 1000))
-    data = {'nonce': nonce}
-    postdata = data['nonce'].encode()
-    message = api_method.encode() + hashlib.sha256(postdata).digest()
-    signature = hmac.new(base64.b64decode(api_secret), message, hashlib.sha512)
-    sigdigest = base64.b64encode(signature.digest()).decode()
-    headers = {'API-Key': api_key, 'API-Sign': sigdigest}
-    response = requests.post(api_url + api_method, headers=headers, data=data)
-    if response.status_code == 200:
-        return response.json()['result']
+    """Clear the console screen based on the operating system."""
+    if sys.platform.startswith('win'):
+        os.system('cls')
     else:
-        print(Fore.RED + "Failed to fetch account balance.")
-        return None
+        os.system('clear')
 
-# Main function to run the app
-def run_app():
+def main():
+    initialize_logging()
     clear_screen()
-    print(Fore.BLUE + "QuantumTrader")
-    time.sleep(0.5)
-    print(Fore.GREEN + "Your Gateway to the Future of Cryptocurrency Trading!")
-    time.sleep(0.5)
 
-    # Generate a key for encryption - In a real scenario, save this key securely and use it for both encryption and decryption
-    key = Fernet.generate_key()
+    if not check_api_keys():
+        # Handle the case where API keys are not found
+        print("API keys are not found. Please add your API keys.")
+        api_key = input("Enter your API key: ")
+        save_api_key(api_key)
+        clear_screen()
 
-    api_key = input(Fore.YELLOW + "Enter Kraken API Key: ")
-    api_secret = input(Fore.YELLOW + "Enter Kraken Private Key: ")
-    
-    # Encrypt and store the keys
-    encrypted_api_key, encrypted_api_secret = encrypt_api_keys(key, api_key, api_secret)
-    ENCRYPTED_KEYS['kraken']['api_key'], ENCRYPTED_KEYS['kraken']['api_secret'] = encrypted_api_key.decode(), encrypted_api_secret.decode()
+    # Load configurations
+    config = load_config()
 
-    # Simulate retrieving and decrypting the keys
-    encrypted_api_key, encrypted_api_secret = ENCRYPTED_KEYS['kraken']['api_key'].encode(), ENCRYPTED_KEYS['kraken']['api_secret'].encode()
-    api_key, api_secret = decrypt_api_keys(key, encrypted_api_key, encrypted_api_secret)
+    # Display a loading screen while testing hardware and internet speeds
+    display_loading_screen()
 
-    # Test connectivity by fetching account balance
-    balance = get_kraken_account_balance(api_key, api_secret)
-    if balance:
-        print(Fore.GREEN + "All Systems Are Go!")
-        print(Fore.GREEN + f"Account Balance: {balance}")
-    else:
-        print(Fore.RED + "Error On API Keys, Please Try Again")
+    # Simulated function to test hardware and calculate estimated profits
+    estimated_profits = test_hardware_and_calculate_profits()
+    print("Estimated 180-Day Profit: $", estimated_profits['180_day'])
+    print("Estimated 365-Day Profit: $", estimated_profits['365_day'])
 
-# Placeholder for the menu and further functionality - to be implemented
+    # Wait for user input to continue
+    input("Press any key to continue to the main menu...")
+
+    while True:
+        clear_screen()
+        display_main_menu()
+        choice = input("Select an option: ")
+
+        if choice == '1':
+            add_api_keys()
+        elif choice == '2':
+            chat_with_chatgpt()
+        elif choice == '3':
+            display_system_specs()
+        elif choice == '4':
+            start_trading_bot()
+        elif choice == '5':
+            start_mining_bot()
+        elif choice == '6':
+            start_trading_and_mining_bot()
+        elif choice == '7':
+            destroy_keys()
+        elif choice == '8':
+            stop_mining()
+        elif choice == '9':
+            stop_trading()
+        elif choice == '10':
+            deposit_funds()
+        elif choice == '11':
+            withdraw_funds()
+        elif choice == '12':
+            about_quantumtrader()
+        elif choice == '13':
+            help_desk()
+        elif choice == '14':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid option, please try again.")
+
+        input("Press Enter to continue...")
+
+def test_hardware_and_calculate_profits():
+    # Placeholder function to simulate hardware testing and profit calculation
+    # This should eventually integrate with actual utility functions
+    return {'180_day': 1000, '365_day': 2500}
 
 if __name__ == "__main__":
-    run_app()
+    main()
